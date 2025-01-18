@@ -1,11 +1,12 @@
 using BuildingBlocks.Exceptions.Handler;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Caching.Distributed;
+using static DiscountGrpc.DiscountProtoService;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
+// Applicaton Services
 var assemply = typeof(Program).Assembly;
 builder.Services.AddCarter();
 builder.Services.AddMediatR(config =>
@@ -15,6 +16,7 @@ builder.Services.AddMediatR(config =>
 	config.AddOpenBehavior(typeof(LoggingBehavior<,>));
 });
 
+// Data Services
 builder.Services.AddMarten(options =>
 {
 	options.Connection(builder.Configuration.GetConnectionString("ConnectionString")!);
@@ -35,6 +37,23 @@ builder.Services.AddStackExchangeRedisCache(options =>
 	options.Configuration = builder.Configuration.GetConnectionString("Redis");
 });
 
+// Grpc Services
+builder.Services.AddGrpcClient<DiscountProtoServiceClient>(options =>
+{
+	options.Address = new Uri(builder.Configuration["GrpcSettings:DiscountUrl"]!);
+})
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+	// Development only bypass
+	var handler = new HttpClientHandler
+	{
+		ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+	};
+
+	return handler;
+});
+
+// Cross-Cuttong Services
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 
 builder.Services.AddHealthChecks()

@@ -22,7 +22,7 @@ public class DeleteOrder : ICarterModule
 
 			var result = await sender.Send(command);
 
-			var response = result.Adapt<CreateOrderResponse>();
+			var response = result.Adapt<DeleteOrderResponse>();
 
 			return Results.Ok(response);
 		})

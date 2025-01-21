@@ -1,5 +1,4 @@
-﻿using BuildingBlocks.Pagination;
-using OrderingApplication.Orders.Queries.GetOrders;
+﻿using OrderingApplication.Orders.Queries.GetOrders;
 
 namespace OrderingApi.Endpoints;
 
@@ -20,9 +19,7 @@ public class GetOrders : ICarterModule
 	{
 		app.MapGet("/orders", async ([AsParameters] PaginationRequest request, ISender sender) =>
 		{
-			var query = request.Adapt<GetOrdersQuery>();
-
-			var result = await sender.Send(query);
+			var result = await sender.Send(new GetOrdersQuery(request));
 
 			var response = result.Adapt<GetOrdersResponse>();
 
